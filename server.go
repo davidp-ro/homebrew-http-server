@@ -28,7 +28,7 @@ func main() {
 				headers += fmt.Sprintf("%s: %s\n", k, v)
 			}
 
-			fmt.Println(parsed.Body)
+			fmt.Printf(">> Request: %s, %s\n", parsed, parsed.Body)
 
 			return []byte("HTTP/1.1 200 OK\n\nOK")
 			// return []byte(fmt.Sprintf("HTTP/1.1 200 OK\n\n%s\n%s\n%s", parsed.Path, parsed.QueryParams["param"], headers))

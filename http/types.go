@@ -1,6 +1,10 @@
 package http
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"net/textproto"
+)
 
 type HTTPMethod string
 
@@ -25,12 +29,21 @@ type Request struct {
 }
 
 func (r Request) String() string {
-	return fmt.Sprintf("%s: %s", r.Method, r.URL)
+	return fmt.Sprintf("%s %s", r.Method, r.URL)
 }
 
 type RequestBody struct {
-	Text string
-	JSON map[string]interface{}
+	Text      string
+	JSON      map[string]interface{}
+	Multipart []MultipartBody
+}
+
+type MultipartBody struct {
+	Filename string
+	Name     string
+	Headers  textproto.MIMEHeader
+	FileData bytes.Buffer
+	FormData string
 }
 
 func (rb RequestBody) String() string {
@@ -44,6 +57,10 @@ func (rb RequestBody) String() string {
 			json += fmt.Sprintf("\t%s: %v\n", k, v)
 		}
 		return fmt.Sprintf("RequestBody(JSON){\n%s}", json)
+	}
+
+	if len(rb.Multipart) > 0 {
+		return fmt.Sprintf("RequestBody(Multipart){ Parts: %d }", len(rb.Multipart))
 	}
 
 	return "RequestBody{ <EMPTY> }"

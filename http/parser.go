@@ -55,7 +55,10 @@ func parseHeaders(headerLines []string) map[string]string {
 			// invalid header
 			continue
 		}
-		headers[parts[0]] = s.Trim(s.Join(parts[1:], ""), " ")
+		// Only add a header if it doesn't already exist
+		if _, ok := headers[parts[0]]; !ok {
+			headers[parts[0]] = s.Join(parts[1:], ":")
+		}
 	}
 	return headers
 }

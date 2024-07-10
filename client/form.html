@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Client (homebrew-http-server)</title>
+  </head>
+
+  <!--
+    Barebones page that can be used to test the homebrew-http-server
+      - Simple POST requests with text and JSON bodies
+      - Form data (x-www-form-urlencoded)
+      - Form files (multipart)
+  -->
+
+  <body>
+    <h1>homebrew-http-server :: Test Client</h1>
+
+    <article>
+      <h2>Test Simple Requests</h2>
+
+      <div class="form-items">
+        <button id="postText">Send POST with text body</button>
+        <button id="postJson">Send POST with JSON body</button>
+      </div>
+      <p class="help-text">See results in console, requires CORS setup</p>
+    </article>
+
+    <form method="post" action="http://localhost:8080">
+      <h2>Test form data (x-www-form-urlencoded)</h2>
+      <div class="form-items">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" />
+        <label for="color">Color</label>
+        <input type="text" id="color" name="color" />
+      </div>
+      <div>
+        <button>Send</button>
+      </div>
+    </form>
+
+    <form
+      method="post"
+      action="http://localhost:8080"
+      enctype="multipart/form-data"
+    >
+      <h2>Test form files (multipart)</h2>
+      <div class="form-items">
+        <label for="file">Choose a file</label>
+        <input type="file" id="file" name="uploadedFile" />
+      </div>
+      <div>
+        <button>Send</button>
+      </div>
+    </form>
+  </body>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+        sans-serif;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      margin-top: 2rem;
+    }
+
+    button {
+      width: fit-content;
+      min-width: 100px;
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      margin-bottom: 0.5rem;
+    }
+
+    label,
+    .help-text {
+      margin-bottom: 0.25rem;
+      color: #2d2d2d;
+      font-size: 12px;
+    }
+
+    .form-items {
+      display: flex;
+      flex-direction: column;
+      max-width: 200px;
+    }
+  </style>
+
+  <script>
+    // POST with Text body
+    document.getElementById("postText").addEventListener("click", async () => {
+      const response = await fetch("http://localhost:8080", {
+        method: "POST",
+        body: "Hello, world!",
+      });
+      console.log(await response.text());
+    });
+
+    // POST with JSON body
+    document.getElementById("postJson").addEventListener("click", async () => {
+      const response = await fetch("http://localhost:8080", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: "Hello, world!",
+          nestedObject: {
+            key: "value",
+            arrayKey: [1, 2, 3],
+          },
+        }),
+      });
+      console.log(await response.text());
+    });
+  </script>
+</html>

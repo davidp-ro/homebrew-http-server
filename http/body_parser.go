@@ -31,7 +31,7 @@ func ParseRequestIntoBodyData(
 	case "application/json":
 		return parseJSON(reqString)
 	case "application/x-www-form-urlencoded":
-		return parseForm(req)
+		return parseForm(reqString)
 	}
 
 	return RequestBody{}, fmt.Errorf("unsupported content type")
@@ -59,8 +59,12 @@ func parseJSON(reqString string) (RequestBody, error) {
 	return RequestBody{JSON: jsonData}, err
 }
 
-func parseForm(req []byte) (RequestBody, error) {
-	panic("unimplemented")
+func parseForm(reqString string) (RequestBody, error) {
+	sections := s.Split(reqString, "\r\n\r\n")
+	if len(sections) < 2 {
+		return RequestBody{}, nil
+	}
+	return RequestBody{FormItems: ExtractQueryParamsFrom(sections[1])}, nil
 }
 
 func parseMultipart(req []byte, contentType string) (RequestBody, error) {

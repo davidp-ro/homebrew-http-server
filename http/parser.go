@@ -32,19 +32,7 @@ func extractPathAndQuery(url string) (string, map[string]string) {
 		return parts[0], nil
 	}
 
-	queryParams := s.Split(parts[1], "&")
-	params := make(map[string]string)
-
-	for _, param := range queryParams {
-		paramKV := s.Split(param, "=")
-		if len(paramKV) != 2 {
-			// Invalid
-			continue
-		}
-		params[paramKV[0]] = paramKV[1]
-	}
-
-	return parts[0], params
+	return parts[0], ExtractQueryParamsFrom(parts[1])
 }
 
 func parseHeaders(headerLines []string) map[string]string {

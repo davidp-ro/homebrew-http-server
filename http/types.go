@@ -35,6 +35,7 @@ func (r Request) String() string {
 type RequestBody struct {
 	Text      string
 	JSON      map[string]interface{}
+	FormItems map[string]string
 	Multipart []MultipartBody
 }
 
@@ -57,6 +58,14 @@ func (rb RequestBody) String() string {
 			json += fmt.Sprintf("\t%s: %v\n", k, v)
 		}
 		return fmt.Sprintf("RequestBody(JSON){\n%s}", json)
+	}
+
+	if len(rb.FormItems) > 0 {
+		form := ""
+		for k, v := range rb.FormItems {
+			form += fmt.Sprintf("\t%s: %s\n", k, v)
+		}
+		return fmt.Sprintf("RequestBody(FormItems){\n%s}", form)
 	}
 
 	if len(rb.Multipart) > 0 {

@@ -4,7 +4,7 @@ import "net"
 
 type TCPNetwork string
 
-type OnConnectionCallback func([]byte, error)
+type OnConnectionCallback func([]byte, error) []byte
 
 const (
 	NetworkTCP  TCPNetwork = "tcp"
@@ -42,7 +42,8 @@ func handleConnection(conn net.Conn, onConn OnConnectionCallback) {
 
 	if err != nil {
 		onConn(nil, err)
+		conn.Write([]byte("HTTP/1.1 500 Internal Server Error\r\n\r\n"))
 	}
 
-	onConn(buf, nil)
+	conn.Write(onConn(buf, nil))
 }

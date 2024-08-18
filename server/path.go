@@ -26,6 +26,10 @@ func extractPathParams(matcherPath string, reqPath string) map[string]string {
 }
 
 func checkPathParams(pathParams map[string]string) bool {
+	if len(pathParams) == 0 {
+		return false
+	}
+
 	for param := range pathParams {
 		// If a matched "param" isn't dynamic (doesn't start with "$") and
 		// doesn't match the path exactly, return false

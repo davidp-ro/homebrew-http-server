@@ -44,8 +44,9 @@ func parseHeaders(headerLines []string) map[string]string {
 			continue
 		}
 		// Only add a header if it doesn't already exist
-		if _, ok := headers[parts[0]]; !ok {
-			headers[parts[0]] = s.Join(parts[1:], ":")
+		header := s.ToLower(parts[0])
+		if _, ok := headers[header]; !ok {
+			headers[header] = s.Join(parts[1:], ":")
 		}
 	}
 	return headers
@@ -72,7 +73,7 @@ func ParseRawRequest(raw []byte) (Request, error) {
 
 	path, queryParams := extractPathAndQuery(requestLine.URL)
 
-	body, err := ParseRequestIntoBodyData(headerFields["Content-Type"], req, raw)
+	body, err := ParseRequestIntoBodyData(headerFields["content-type"], req, raw)
 	if err != nil {
 		return Request{}, err
 	}

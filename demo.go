@@ -6,7 +6,7 @@ import (
 	"github.com/davidp-ro/homebrew-http-server/server"
 )
 
-func main() {
+func Demo() {
 	s := server.HTTPServer{Debug: true, Cors: server.GetDefaultCorsOptions()}
 	s.On(server.Get("/", func(data server.HandlerData) []byte {
 		return s.RespondWith(200, "Hello!")

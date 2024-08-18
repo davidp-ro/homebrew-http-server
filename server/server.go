@@ -14,6 +14,7 @@ import (
 type HandlerFunc func(HandlerData) []byte
 
 type HandlerData struct {
+	Server     HTTPServer
 	Request    http.Request
 	PathParams map[string]string
 }
@@ -88,7 +89,7 @@ func match(s HTTPServer, req http.Request) []byte {
 	}
 
 	return pathHandlers[0].Handler(HandlerData{
-		Request: req, PathParams: pathParams,
+		Server: s, Request: req, PathParams: pathParams,
 	})
 }
 

@@ -1,3 +1,5 @@
+// Barebones example of how the HTTPServer can be used
+
 package main
 
 import (

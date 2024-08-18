@@ -6,6 +6,9 @@ import (
 	"github.com/davidp-ro/homebrew-http-server/server"
 )
 
+// Wrapper function to start the example TODOs REST API
+//
+// To run: `go run todo_api_example.go` from root!
 func StartExampleAPI() {
 	s := server.HTTPServer{Cors: server.GetDefaultCorsOptions()}
 	s.On(server.Get("/", func(data server.HandlerData) []byte {

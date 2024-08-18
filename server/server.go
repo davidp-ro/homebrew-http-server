@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/davidp-ro/homebrew-http-server/http"
 	"github.com/davidp-ro/homebrew-http-server/tcp"
@@ -23,8 +24,15 @@ type Handler struct {
 	Handler  HandlerFunc
 }
 
+type CorsOptions struct {
+	AllowOrigin  string
+	AllowMethods string
+	AllowHeaders string
+}
+
 type HTTPServer struct {
 	Handlers []Handler
+	Cors     CorsOptions
 	Debug    bool
 }
 
@@ -37,7 +45,7 @@ func match(s HTTPServer, req http.Request) []byte {
 		return h.OnMethod == req.Method
 	})
 	if len(methodHandlers) == 0 {
-		return RespondWith(405, "Method Not Allowed")
+		return s.RespondWith(405, "Method Not Allowed")
 	}
 
 	// Look for exact path match:
@@ -46,7 +54,7 @@ func match(s HTTPServer, req http.Request) []byte {
 	})
 	if len(pathHandlers) > 1 {
 		fmt.Printf("HTTPServer::match - Multiple handlers for the same path: %s\n", req.Path)
-		return RespondWith(500, "Internal Server Error")
+		return s.RespondWith(500, "Internal Server Error")
 	}
 
 	pathParams := make(map[string]string)
@@ -58,7 +66,7 @@ func match(s HTTPServer, req http.Request) []byte {
 		// Try to find a path with path params
 		params, handler := matchToParametrizedPath(s, methodHandlers, req)
 		if params == nil {
-			return RespondWith(404, "Not Found")
+			return s.RespondWith(404, "Not Found")
 		}
 
 		pathParams = params
@@ -102,7 +110,7 @@ func Options(path string, handler HandlerFunc) Handler {
 	return newHandler(http.OPTIONS, path, handler)
 }
 
-func RespondWith(statusCode int, body string) []byte {
+func (s HTTPServer) RespondWith(statusCode int, body string, customHeaders ...map[string]string) []byte {
 	statusTexts := map[int]string{
 		200: "OK",
 		201: "Created",
@@ -120,7 +128,27 @@ func RespondWith(statusCode int, body string) []byte {
 		panic("HTTPServer::RespondWith: Unsupported status code")
 	}
 
-	return []byte("HTTP/1.1 " + strconv.Itoa(statusCode) + " " + statusText + "\r\n\r\n" + body)
+	headers := GetDefaultHeaders()
+
+	// Add (or overwrite with) custom headers
+	for _, customHeader := range customHeaders {
+		for k, v := range customHeader {
+			headers[strings.ToLower(k)] = v
+		}
+	}
+
+	// Add CORS headers
+	for k, v := range GetCorsHeaders(s) {
+		headers[strings.ToLower(k)] = v
+	}
+
+	return []byte(
+		"HTTP/1.1 " +
+			strconv.Itoa(statusCode) + " " +
+			statusText + "\r\n" +
+			BuildHeadersString(headers) + "\r\n\r\n" +
+			body,
+	)
 }
 
 func (s HTTPServer) Start(address string, onStart func()) {
@@ -130,13 +158,13 @@ func (s HTTPServer) Start(address string, onStart func()) {
 		OnConnection: func(data []byte, err error) []byte {
 			if err != nil {
 				log.Printf("HTTPServer::OnConnection - Fail: %v\n", err)
-				return RespondWith(500, "Internal Server Error")
+				return s.RespondWith(500, "Internal Server Error")
 			}
 
 			parsed, err := http.ParseRawRequest(data)
 			if err != nil {
 				log.Printf("HTTPServer::OnConnection - Parsing Error: %v\n", err)
-				return RespondWith(400, "Bad Request")
+				return s.RespondWith(400, "Bad Request")
 			}
 
 			return match(s, parsed)

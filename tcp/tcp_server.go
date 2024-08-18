@@ -18,10 +18,14 @@ type Server struct {
 	OnConnection OnConnectionCallback
 }
 
-func (server Server) Start() error {
+func (server Server) Start(onStart func()) error {
 	listener, err := net.Listen(string(server.Network), server.Address)
 	if err != nil {
 		return err
+	}
+
+	if onStart != nil {
+		onStart()
 	}
 
 	for {

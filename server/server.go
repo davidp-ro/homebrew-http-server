@@ -45,7 +45,15 @@ func match(s HTTPServer, req http.Request) []byte {
 		return h.OnMethod == req.Method
 	})
 	if len(methodHandlers) == 0 {
-		return s.RespondWith(405, "Method Not Allowed")
+		if req.Method != http.OPTIONS {
+			// For all methods except OPTIONS, return 405
+			return s.RespondWith(405, "Method Not Allowed")
+		} else {
+			// Otherwise, handle CORS preflight request (if CORS is enabled)
+			if s.Cors != (CorsOptions{}) {
+				return s.RespondWith(204, "")
+			}
+		}
 	}
 
 	// Look for exact path match:
@@ -55,6 +63,12 @@ func match(s HTTPServer, req http.Request) []byte {
 	if len(pathHandlers) > 1 {
 		fmt.Printf("HTTPServer::match - Multiple handlers for the same path: %s\n", req.Path)
 		return s.RespondWith(500, "Internal Server Error")
+	}
+	if len(pathHandlers) == 0 && req.Method == http.OPTIONS {
+		// Handle CORS preflight request (if CORS is enabled) implicitly
+		if s.Cors != (CorsOptions{}) {
+			return s.RespondWith(204, "")
+		}
 	}
 
 	pathParams := make(map[string]string)
@@ -143,10 +157,8 @@ func (s HTTPServer) RespondWith(statusCode int, body string, customHeaders ...ma
 	}
 
 	return []byte(
-		"HTTP/1.1 " +
-			strconv.Itoa(statusCode) + " " +
-			statusText + "\r\n" +
-			BuildHeadersString(headers) + "\r\n\r\n" +
+		"HTTP/1.1 " + strconv.Itoa(statusCode) + " " + statusText + "\r\n" +
+			BuildHeadersString(headers) + "\r\n" +
 			body,
 	)
 }

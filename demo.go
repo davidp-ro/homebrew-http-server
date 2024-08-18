@@ -14,6 +14,9 @@ func main() {
 	s.On(server.Get("/hello", func(data server.HandlerData) []byte {
 		return s.RespondWith(200, "Hello, world!")
 	}))
+	s.On(server.Options("/hello", func(data server.HandlerData) []byte {
+		return s.RespondWith(200, "Hello, options!")
+	}))
 	s.On(server.Get("/$path1/$path2/test", func(data server.HandlerData) []byte {
 		return s.RespondWith(200, fmt.Sprintf("Hello, path! %v", data.PathParams))
 	}))
